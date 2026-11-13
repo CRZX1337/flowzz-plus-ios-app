@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "flowzz+",
+  "version": "1.5.1",
+  "description": "Erweiterte Suche für flowzz.com: Herkunft, Effekte, Terpene, Favoriten, Vergleich und CSV-Export.",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://flowzz.com/*",
+    "https://raw.githubusercontent.com/CRZX1337/flowzz-plus/*",
+    "https://api.github.com/repos/CRZX1337/flowzz-plus/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "flowzz+ Suche öffnen",
+    "default_icon": {
+      "128": "images/original-icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "images/original-icons/icon16.png",
+    "32": "images/original-icons/icon32.png",
+    "48": "images/original-icons/icon48.png",
+    "128": "images/original-icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://flowzz.com/*"
+      ],
+      "js": [
+        "images/attrs.js",
+        "images/attrs-ui.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content.css",
+        "images/attrs.json.gz",
+        "images/original-icons/*"
+      ],
+      "matches": [
+        "https://flowzz.com/*"
+      ]
+    }
+  ]
+}

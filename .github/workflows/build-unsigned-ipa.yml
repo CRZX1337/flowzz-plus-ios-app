@@ -1,0 +1,174 @@
+name: Build unsigned iOS IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_bundle_id:
+        description: Bundle identifier for the iOS host app (must match the signing profile)
+        required: true
+        type: string
+      extension_bundle_id:
+        description: Bundle identifier for the Safari extension (must be prefixed by the host ID)
+        required: true
+        type: string
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build-ipa:
+    name: Build and package iOS app
+    runs-on: macos-26
+    env:
+      APP_BUNDLE_ID_INPUT: ${{ inputs.app_bundle_id }}
+      EXTENSION_BUNDLE_ID_INPUT: ${{ inputs.extension_bundle_id }}
+      APP_BUNDLE_ID_VARIABLE: ${{ vars.FLOWZZ_APP_BUNDLE_ID }}
+      EXTENSION_BUNDLE_ID_VARIABLE: ${{ vars.FLOWZZ_EXTENSION_BUNDLE_ID }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Resolve and validate bundle identifiers
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            app_id="$APP_BUNDLE_ID_INPUT"
+            extension_id="$EXTENSION_BUNDLE_ID_INPUT"
+          else
+            app_id="$APP_BUNDLE_ID_VARIABLE"
+            extension_id="$EXTENSION_BUNDLE_ID_VARIABLE"
+          fi
+
+          if [[ -z "$app_id" || -z "$extension_id" ]]; then
+            echo "Set FLOWZZ_APP_BUNDLE_ID and FLOWZZ_EXTENSION_BUNDLE_ID in repository Variables, or run workflow_dispatch with both values."
+            exit 1
+          fi
+
+          bundle_id_pattern='^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$'
+          if [[ ! "$app_id" =~ $bundle_id_pattern || ! "$extension_id" =~ $bundle_id_pattern ]]; then
+            echo "Bundle identifiers must be dot-separated letters, digits, and hyphens."
+            exit 1
+          fi
+          if [[ "$extension_id" != "$app_id".* ]]; then
+            echo "The Safari extension bundle ID must begin with the host app bundle ID and a dot."
+            exit 1
+          fi
+
+          {
+            echo "FLOWZZ_APP_BUNDLE_ID=$app_id"
+            echo "FLOWZZ_EXTENSION_BUNDLE_ID=$extension_id"
+          } >> "$GITHUB_ENV"
+
+      - name: Validate project and JavaScript
+        run: |
+          python3 tools/validate-project.py
+          node --check 'FlowzzPlus Extension/Resources/content.js'
+          node --check 'FlowzzPlus Extension/Resources/images/attrs.js'
+          node --check 'FlowzzPlus Extension/Resources/images/attrs-ui.js'
+          node --check 'FlowzzPlus Extension/Resources/background.js'
+
+      - name: Build unsigned device app and embedded Safari extension
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          derived_data="$RUNNER_TEMP/FlowzzPlusDerivedData"
+          xcodebuild \
+            -project 'FlowzzPlus.xcodeproj' \
+            -scheme FlowzzPlus \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$derived_data" \
+            FLOWZZ_APP_BUNDLE_ID="$FLOWZZ_APP_BUNDLE_ID" \
+            FLOWZZ_EXTENSION_BUNDLE_ID="$FLOWZZ_EXTENSION_BUNDLE_ID" \
+            CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' \
+            build
+
+          app_path="$derived_data/Build/Products/Release-iphoneos/FlowzzPlus.app"
+          extension_path="$app_path/PlugIns/FlowzzPlus Extension.appex"
+          test -d "$app_path"
+          test -d "$extension_path"
+
+          python3 - "$app_path" "$FLOWZZ_APP_BUNDLE_ID" "$FLOWZZ_EXTENSION_BUNDLE_ID" <<'PY'
+          import json
+          import plistlib
+          import sys
+          from pathlib import Path
+
+          app = Path(sys.argv[1])
+          expected_app_id, expected_extension_id = sys.argv[2:]
+          extension = app / 'PlugIns' / 'FlowzzPlus Extension.appex'
+          app_info = plistlib.loads((app / 'Info.plist').read_bytes())
+          extension_info = plistlib.loads((extension / 'Info.plist').read_bytes())
+          manifest = json.loads((extension / 'manifest.json').read_text(encoding='utf-8'))
+
+          assert app_info['CFBundleIdentifier'] == expected_app_id
+          assert extension_info['CFBundleIdentifier'] == expected_extension_id
+          assert expected_extension_id.startswith(expected_app_id + '.')
+          assert extension_info['NSExtension']['NSExtensionPointIdentifier'] == 'com.apple.Safari.web-extension'
+          assert manifest['background']['service_worker'] == 'background.js'
+
+          required = [
+              'background.js', 'content.js', 'content.css',
+              'images/attrs.js', 'images/attrs-ui.js', 'images/attrs.json.gz',
+              'images/original-icons/icon128.png', 'images/original-icons/icon16.png',
+          ]
+          for relative in required:
+              assert (extension / relative).is_file(), f'Missing extension resource: {relative}'
+          print(f'Validated embedded Safari extension: {expected_extension_id}')
+          PY
+
+      - name: Package and verify unsigned IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          app_path="$RUNNER_TEMP/FlowzzPlusDerivedData/Build/Products/Release-iphoneos/FlowzzPlus.app"
+          staging="$RUNNER_TEMP/FlowzzPlusIPA"
+          ipa_path="$GITHUB_WORKSPACE/flowzz-plus-unsigned.ipa"
+          rm -rf "$staging" "$ipa_path"
+          mkdir -p "$staging/Payload"
+          ditto "$app_path" "$staging/Payload/FlowzzPlus.app"
+          ditto -c -k --sequesterRsrc --keepParent "$staging/Payload" "$ipa_path"
+
+          python3 - "$ipa_path" <<'PY'
+          import sys
+          from zipfile import ZipFile
+
+          ipa = sys.argv[1]
+          prefix = 'Payload/FlowzzPlus.app/PlugIns/FlowzzPlus Extension.appex/'
+          with ZipFile(ipa) as archive:
+              names = set(archive.namelist())
+              required = [
+                  'Payload/FlowzzPlus.app/Info.plist',
+                  prefix + 'Info.plist',
+                  prefix + 'manifest.json',
+                  prefix + 'background.js',
+                  prefix + 'content.js',
+                  prefix + 'content.css',
+                  prefix + 'images/attrs.json.gz',
+              ]
+              missing = [path for path in required if path not in names]
+              if missing:
+                  raise SystemExit('IPA is missing expected app/extension files: ' + ', '.join(missing))
+              if any('/popup.' in path for path in names):
+                  raise SystemExit('Unexpected popup scaffold found in IPA')
+          print(f'IPA package verified: {ipa}')
+          PY
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flowzz-plus-unsigned-ipa-${{ github.run_number }}
+          path: flowzz-plus-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14

@@ -2,3 +2,17 @@
 xcuserdata/
 build/
 DerivedData/
+*.ipa
+*.xcarchive/
+Payload/
+*.p12
+*.mobileprovision
+*.provisionprofile
+*.certSigningRequest
+*.cer
+*.pem
+*.key
+*.p8
+*.pfx
+*.der
+.zsign_cache/
