@@ -14,8 +14,8 @@ The workflow is `.github/workflows/build-unsigned-ipa.yml`.
 
 - Runs on pushes to `main`, tags matching `v*`, and manual `workflow_dispatch`.
 - Manual runs accept optional `app_bundle_id` and `extension_bundle_id`; for automatic push/tag builds, the repository **Variables** `FLOWZZ_APP_BUNDLE_ID` and `FLOWZZ_EXTENSION_BUNDLE_ID` can be set under **Settings → Secrets and variables → Actions → Variables**.
-- If no IDs are supplied, the workflow uses `com.example.flowzzplus` and `com.example.flowzzplus.Extension` so it can still build an unsigned IPA. If only one ID is supplied, it stops with an error.
-- These are placeholders: the resulting IPA is for build testing only and cannot be installed with your developer certificate. For a signable IPA, build with the exact IDs registered for the host and Safari extension and authorized by both provisioning profiles; the extension ID must start with the host ID followed by a dot.
+- If no IDs are supplied, the workflow uses `com.crzx.flowzzplus` and `com.crzx.flowzzplus.Extension` so it can still build an unsigned IPA. If only one ID is supplied, it stops with an error.
+- To install a signed IPA, both provisioning profiles must authorize these exact IDs and include the developer certificate; the extension ID must start with the host ID followed by a dot. If your profiles use different IDs, pass those IDs to the workflow or set the repository Variables.
 - The workflow validates the project and JavaScript, builds the Release device app and dependent extension with code signing disabled, verifies the embedded `.appex` and its resources, and packages the app under the IPA-required `Payload/` directory.
 - No certificate, private key, password, or provisioning profile is used by CI. Never put these files in the repository, Actions Variables, or Actions logs.
 

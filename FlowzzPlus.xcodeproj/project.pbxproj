@@ -361,8 +361,8 @@
 		F60000000000000000000005 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FLOWZZ_APP_BUNDLE_ID = com.example.flowzzplus;
-				FLOWZZ_EXTENSION_BUNDLE_ID = com.example.flowzzplus.Extension;
+				FLOWZZ_APP_BUNDLE_ID = com.crzx.flowzzplus;
+				FLOWZZ_EXTENSION_BUNDLE_ID = com.crzx.flowzzplus.Extension;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -427,8 +427,8 @@
 		F60000000000000000000006 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FLOWZZ_APP_BUNDLE_ID = com.example.flowzzplus;
-				FLOWZZ_EXTENSION_BUNDLE_ID = com.example.flowzzplus.Extension;
+				FLOWZZ_APP_BUNDLE_ID = com.crzx.flowzzplus;
+				FLOWZZ_EXTENSION_BUNDLE_ID = com.crzx.flowzzplus.Extension;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;

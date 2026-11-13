@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       app_bundle_id:
-        description: Optional host bundle ID; blank uses a non-installable placeholder
+        description: Optional host bundle ID; blank uses the com.crzx default
         required: false
         type: string
       extension_bundle_id:
-        description: Optional Safari extension bundle ID; blank uses a non-installable placeholder
+        description: Optional Safari extension bundle ID; blank uses the com.crzx default
         required: false
         type: string
   push:
@@ -43,11 +43,11 @@ jobs:
           if [[ -z "$extension_id" ]]; then extension_id="$EXTENSION_BUNDLE_ID_VARIABLE"; fi
 
           if [[ -z "$app_id" && -z "$extension_id" ]]; then
-            app_id="com.example.flowzzplus"
-            extension_id="com.example.flowzzplus.Extension"
-            echo "::warning::No bundle IDs supplied; using non-installable placeholder IDs."
+            app_id="com.crzx.flowzzplus"
+            extension_id="com.crzx.flowzzplus.Extension"
+            echo "::warning::No bundle IDs supplied; using the com.crzx defaults. Signing profiles must match these IDs to install the IPA."
           elif [[ -z "$app_id" || -z "$extension_id" ]]; then
-            echo "Supply both bundle IDs, or leave both blank to use placeholders."
+            echo "Supply both bundle IDs, or leave both blank to use the com.crzx defaults."
             exit 1
           fi
 

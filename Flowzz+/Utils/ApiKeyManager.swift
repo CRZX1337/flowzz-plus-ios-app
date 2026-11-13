@@ -36,7 +36,7 @@ class ApiKeyManager {
     private var projectName: String {
         // Try to get from bundle identifier or use a default
         if let bundleId = Bundle.main.bundleIdentifier {
-            // Extract project name from bundle ID (e.g., "com.example.MyApp" -> "MyApp")
+            // Extract the project name from a reverse-DNS bundle identifier.
             let components = bundleId.components(separatedBy: ".")
             return components.last ?? "Flowzz-"
         }
