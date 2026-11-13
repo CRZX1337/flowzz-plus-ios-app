@@ -21,7 +21,7 @@ Es gibt kein App-Store-Angebot. Der Weg ist immer derselbe:
    Linux- und macOS-Build von zsign sowie die Fehlersuche stehen in [BUILD.md](BUILD.md).
 3. **Installieren** – die signierte IPA über einen Installer einspielen, der nicht erneut
    signiert.
-4. **In Safari aktivieren** – *Einstellungen → Apps → Safari → Erweiterungen* → flowzz+
+4. **In Safari aktivieren** – *Einstellungen → Safari → Erweiterungen* (ab iOS 18: *Einstellungen → Apps → Safari → Erweiterungen*) → flowzz+
    einschalten und den Website-Zugriff für `flowzz.com` erlauben. Danach flowzz.com in
    Safari neu laden.
 

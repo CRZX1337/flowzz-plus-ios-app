@@ -20,8 +20,9 @@ Dateipfade sind relativ zu diesem Repository.
 
 ## P1 — iPhone & UX
 
-- [x] **P1-1 Zoom beim Suchen** — `.fx-search input`, `.fx-mini-search` und
-      `.fx-linkinput` stehen bei `pointer: coarse` auf 16px. (`content.css`)
+- [x] **P1-1 Zoom beim Suchen** — `.fx-search input`, `.fx-mini-search`,
+      `.fx-linkinput` und `.fx-select select` stehen bei `pointer: coarse` auf 16px;
+      die beiden `<select>` (Sortierung, Filter) zusätzlich auf 44px Höhe. (`content.css`)
 - [~] **P1-2 Touchziele** — 44px für Tabs, Schließen, Filter, Modal-Schließen, Buttons,
       Checkbox-Zeilen und Icon-Knöpfe. Kartenaktionen nur 40px: 2 × 44px überdeckt die
       148px breite Karte. (`content.css`)
@@ -34,7 +35,10 @@ Dateipfade sind relativ zu diesem Repository.
 - [x] **P1-6 Update-Banner** — `<a href="#">` durch einen echten Button ersetzt; der Text
       sagt, was zu tun ist (IPA neu signieren und installieren). (`content.js`)
 - [~] **P1-7 Safe-Area** — `env(safe-area-inset-*)` für Launcher, Toast, Update-Banner
-      und Kopfzeile. Safaris untere Leiste selbst bleibt unberücksichtigt; `dvh` fehlt.
+      und Kopfzeile. Auf flowzz.com wirkungslos: das Viewport-Meta der Seite ist
+      `initial-scale=1, width=device-width` ohne `viewport-fit=cover`, damit sind alle
+      Insets 0. Die Regeln bleiben als Vorbereitung drin; Safaris untere Leiste selbst
+      bleibt unberücksichtigt, `dvh` fehlt.
 - [~] **P1-8 Scroll-Lock** — `overscroll-behavior: contain` auf den scrollenden Flächen.
       Der eigentliche Lock bleibt `documentElement.style.overflow`; auf iOS blockt das
       nicht zuverlässig.
