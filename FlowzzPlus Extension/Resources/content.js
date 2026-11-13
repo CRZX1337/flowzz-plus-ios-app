@@ -524,6 +524,7 @@
     const shadow = ui.shadow;
     const app = el('div', 'fx-app');
     app.setAttribute('role', 'dialog');
+    app.setAttribute('aria-modal', 'true');
     app.setAttribute('aria-label', 'flowzz+ Suche');
 
     const top = el('header', 'fx-top');
@@ -545,8 +546,8 @@
 
     ui.helpBtn = el('button', 'fx-iconbtn fx-helpbtn', '?');
     ui.helpBtn.type = 'button';
-    ui.helpBtn.title = 'Tastaturkürzel';
-    ui.helpBtn.setAttribute('aria-label', 'Tastaturkürzel anzeigen');
+    ui.helpBtn.title = 'Hilfe';
+    ui.helpBtn.setAttribute('aria-label', 'Hilfe und Kürzel anzeigen');
     ui.helpBtn.addEventListener('click', openShortcuts);
 
     ui.themeBtn = el('button', 'fx-iconbtn fx-themebtn', '☾');
@@ -556,7 +557,9 @@
 
     const close = el('button', 'fx-close');
     close.type = 'button';
-    close.innerHTML = '<span>Schließen</span><kbd>Esc</kbd>';
+    close.setAttribute('aria-label', 'Overlay schließen');
+    close.innerHTML = '<span class="fx-close-text">Schließen</span>' +
+      '<span class="fx-close-x" aria-hidden="true">✕</span><kbd>Esc</kbd>';
     close.addEventListener('click', closeOverlay);
 
     top.append(brand, searchWrap, ui.helpBtn, ui.themeBtn, close);
@@ -707,6 +710,8 @@
 
     ui.modal = el('div', 'fx-modal');
     ui.modal.hidden = true;
+    ui.modal.setAttribute('role', 'dialog');
+    ui.modal.setAttribute('aria-modal', 'true');
     ui.modalCard = el('div', 'fx-modal-card');
     ui.modal.append(ui.modalCard);
     ui.modal.addEventListener('click', (e) => { if (e.target === ui.modal) closeModal(); });
@@ -1305,16 +1310,28 @@
   /* ---------- Modals ---------- */
 
   function openModal(content) {
+    if (ui.modal.hidden) {
+      // Fokus merken, damit er nach dem Schließen zurückkehren kann.
+      ui.lastFocus = (ui.shadow && ui.shadow.activeElement) || document.activeElement;
+    }
     ui.modalCard.textContent = '';
     ui.modalCard.append(content);
     ui.modal.hidden = false;
     ui.modal.classList.add('is-open');
+    const first = ui.modalCard.querySelector('button, [href], input, select, textarea');
+    if (first && first.focus) {
+      setTimeout(() => { if (!ui.modal.hidden) first.focus({ preventScroll: true }); }, 60);
+    }
   }
 
   function closeModal() {
     if (!ui.modal) return;
+    const wasOpen = !ui.modal.hidden;
     ui.modal.hidden = true;
     ui.modal.classList.remove('is-open');
+    const back = ui.lastFocus;
+    ui.lastFocus = null;
+    if (wasOpen && back && back.isConnected && back.focus) back.focus({ preventScroll: true });
   }
 
   async function openPriceDialog(p) {
@@ -1517,13 +1534,13 @@
 
     const dot = el('span', 'fx-update-dot');
     const text = el('div', 'fx-update-text');
-    text.append(el('b', null, 'Update verfügbar'), el('span', null, 'Version ' + version + ' ist da'));
+    text.append(el('b', null, 'Update verfügbar'), el('span', null, 'flowzz+ ' + version + ' ist erschienen'));
 
-    const go = el('a', 'fx-update-btn', 'App-Update');
-    go.href = '#flowzz-plus-app-update';
-    go.addEventListener('click', (event) => {
-      event.preventDefault();
-      toast('Safari-Erweiterungen werden zusammen mit der flowzz+-App aktualisiert.');
+    // Kein Link: die Erweiterung wird mit der App aktualisiert, nicht im Browser.
+    const go = el('button', 'fx-update-btn', 'Wie updaten?');
+    go.type = 'button';
+    go.addEventListener('click', () => {
+      toast('Safari-Erweiterungen werden zusammen mit der App aktualisiert: neue IPA signieren und installieren.');
     });
 
     const close = el('button', 'fx-update-close', '✕');
@@ -1610,19 +1627,37 @@
     ['Esc', 'Schließen']
   ];
 
+  // Auf dem iPhone gibt es keine Tastatur – dort steht, wo man tippt.
+  const TOUCH_TIPS = [
+    ['Suche', 'Oben ins Suchfeld tippen – Sorte, Hersteller oder Herkunft.'],
+    ['Kategorien', 'Blüten, Extrakte und Edibles wechselst du in der Leiste darunter.'],
+    ['Filter', '„Filter“ öffnet die Seitenleiste mit Herkunft, Preis, THC und Wirkung.'],
+    ['Favoriten', 'Der Stern auf einer Karte merkt sie dir lokal.'],
+    ['Vergleich', '⇄ sammelt bis zu vier Produkte, „Vergleich“ stellt sie nebeneinander.'],
+    ['Teilen', '„Link teilen“ kopiert die aktuelle Auswahl samt Filtern.'],
+    ['Schließen', '✕ oben rechts oder die Zurück-Geste von Safari.']
+  ];
+
+  const isTouch = () => typeof window.matchMedia === 'function' && window.matchMedia('(hover: none)').matches;
+
   function openShortcuts() {
+    const touch = isTouch();
     const head = el('div', 'fx-modal-head');
-    head.append(el('b', null, 'Tastaturkürzel'), el('span', null, 'Schneller durch flowzz+'));
+    head.append(
+      el('b', null, touch ? 'Hilfe' : 'Tastaturkürzel'),
+      el('span', null, touch ? 'So bedienst du flowzz+' : 'Schneller durch flowzz+')
+    );
     const close = el('button', 'fx-modal-close', '✕');
     close.type = 'button';
+    close.setAttribute('aria-label', 'Schließen');
     close.addEventListener('click', closeModal);
     head.append(close);
 
     const body = el('div', 'fx-modal-body');
     const list = el('div', 'fx-shortcuts');
-    for (const [key, label] of SHORTCUTS) {
+    for (const [key, label] of (touch ? TOUCH_TIPS : SHORTCUTS)) {
       const row = el('div', 'fx-shortcut');
-      row.append(el('kbd', null, key), el('span', null, label));
+      row.append(el(touch ? 'b' : 'kbd', touch ? 'fx-tip-key' : null, key), el('span', null, label));
       list.append(row);
     }
     body.append(list);
@@ -1645,7 +1680,7 @@
     },
     {
       title: 'Deine Ansicht',
-      text: 'Darkmode über ☾, Favoriten über ★, Export als CSV und Teilen-Link. Mit ? siehst du alle Tastaturkürzel.'
+      text: 'Darkmode über ☾, Favoriten über ★, Export als CSV und Teilen-Link. Das ? oben rechts zeigt Hilfe und alle Kürzel.'
     }
   ];
 
@@ -1841,6 +1876,8 @@
 
   function closeOverlay() {
     state.opened = false;
+    // Der Fokus soll nicht in das geschlossene Overlay zurückspringen.
+    ui.lastFocus = null;
     closeModal();
     if (ui.app) ui.app.classList.remove('is-open');
     if (ui.host) ui.host.classList.remove('fx-visible');
@@ -1948,12 +1985,15 @@
     }
 
     let lastPath = location.pathname + location.search;
-    setInterval(() => {
+    const syncRoute = () => {
       const now = location.pathname + location.search;
       if (now === lastPath) return;
       lastPath = now;
       if (!state.opened) { showLauncher(); injectDetailBadge(); }
-    }, 1200);
+    };
+    window.addEventListener('popstate', syncRoute);
+    window.addEventListener('hashchange', syncRoute);
+    setInterval(syncRoute, 1200);
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {

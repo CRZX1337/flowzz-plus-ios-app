@@ -21,12 +21,19 @@ The workflow is `.github/workflows/build-unsigned-ipa.yml`.
 
 ### Download the IPA
 
+A run started by pushing a `v*` tag attaches the IPA to that tag's **release**, so the link stays valid:
+
+1. Open the repository's **Releases** and pick the newest tag.
+2. Download `flowzz-plus-unsigned.ipa` from its assets.
+
+Every other run only keeps the IPA as a workflow artifact:
+
 1. Open the repository on GitHub and select **Actions**.
 2. Open a successful **Build unsigned iOS IPA** run.
 3. Download the `flowzz-plus-unsigned-ipa-<run number>` artifact.
 4. Unzip GitHub's artifact download to obtain `flowzz-plus-unsigned.ipa`.
 
-Artifacts are retained for 14 days; start another workflow run if one has expired.
+Artifacts are retained for 14 days; start another workflow run if one has expired. Push a tag if you need a download link that does not expire.
 
 ## Developer certificate and profile requirements
 
@@ -45,13 +52,23 @@ The Safari extension target currently declares **no custom entitlements** and us
 
 Keep the certificate and profiles outside the repository, for example in `$HOME/flowzz-signing`. The repository `.gitignore` excludes common signing files and zsign cache, but do not rely on ignore rules alone. Never upload the `.p12`, its password, or either `.mobileprovision` to GitHub.
 
-Build zsign from its official source on a trusted Mac (the upstream project also documents Linux and Windows builds):
+Build zsign from its official source on a trusted machine. A Linux server works as well as a Mac — you do not need macOS to sign this IPA.
 
-1. Install the macOS build prerequisites (`pkg-config` and OpenSSL).
-2. Clone `https://github.com/zhlynn/zsign` outside this repository.
-3. In its `build/macos` directory, run `make clean && make` and use the resulting `zsign` executable.
-4. From a private signing directory, set paths to the downloaded unsigned IPA, your developer `.p12`, host profile, and extension profile. Optionally inspect the certificate and profiles with `zsign -C` before signing.
-5. Sign with both profiles; zsign selects the matching profile for each bundle ID:
+On Linux (Ubuntu/Debian):
+
+```sh
+sudo apt-get update && sudo apt-get install -y build-essential pkg-config libssl-dev
+git clone https://github.com/zhlynn/zsign "$HOME/zsign-src"
+cd "$HOME/zsign-src/build/linux" && make clean && make
+# the binary is $HOME/zsign-src/build/linux/zsign
+```
+
+On macOS the same steps apply in `build/macos`, with `pkg-config` and OpenSSL from Homebrew. The upstream project also documents a Windows build.
+
+Then, from a private signing directory:
+
+1. Set paths to the downloaded unsigned IPA, your developer `.p12`, host profile, and extension profile. Optionally inspect the certificate and profiles with `zsign -C` before signing.
+2. Sign with both profiles; zsign selects the matching profile for each bundle ID:
 
 ```sh
 SIGNING_DIR="$HOME/flowzz-signing"

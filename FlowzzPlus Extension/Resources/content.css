@@ -1217,3 +1217,72 @@ html.fx-lock, html.fx-lock body { overflow: hidden !important; }
 }
 
 .fx-linkinput:focus { border-color: var(--fx-green); }
+
+
+/* ---------- Touch & iPhone ---------- */
+
+.fx-close-x { display: none; }
+
+.fx-tip-key {
+  flex: none;
+  min-width: 74px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--fx-ink);
+}
+
+/* Scrollen im Overlay soll die Seite darunter nicht mitziehen. */
+.fx-side, .fx-main, .fx-checklist, .fx-modal-card, .fx-offerlist { overscroll-behavior: contain; }
+
+/* Der Update-Hinweis löst eine Erklärung aus, er ist kein Link. */
+.fx-update-btn { border: 0; cursor: pointer; font-family: inherit; }
+
+@media (pointer: coarse) {
+  /* iOS zoomt Eingabefelder unter 16px beim Fokussieren heran. */
+  .fx-search input,
+  .fx-mini-search,
+  .fx-linkinput { font-size: 16px; }
+
+  /* Tippziele statt 22–36px. */
+  .fx-actbtn { width: 40px; height: 40px; font-size: 16px; }
+  .fx-iconbtn { width: 44px; height: 44px; }
+  .fx-tab { min-height: 44px; padding: 0 14px; }
+  .fx-close { height: 44px; padding: 0 12px; }
+  .fx-close-text, .fx-close kbd { display: none; }
+  .fx-close-x { display: inline; font-size: 16px; }
+  .fx-mobilefilter { height: 44px; }
+  .fx-modal-close { width: 44px; height: 44px; font-size: 15px; }
+  .fx-check { padding: 11px 4px; }
+  .fx-check input { width: 20px; height: 20px; }
+  .fx-btn { height: 44px; }
+  .fx-update-close { width: 44px; height: 44px; }
+  .fx-update-btn { padding: 11px 12px; }
+  .fx-detail-badge { padding: 10px 14px; }
+  .fx-reset { padding: 10px 0; }
+  .fx-section-head { padding: 16px 0; }
+  .fx-main { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Notch und Home-Indikator: unten angedockte Elemente freihalten. */
+.fx-launcher {
+  right: calc(22px + env(safe-area-inset-right, 0px));
+  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+}
+.fx-toast { bottom: calc(26px + env(safe-area-inset-bottom, 0px)); }
+.fx-update {
+  left: calc(22px + env(safe-area-inset-left, 0px));
+  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+}
+.fx-top {
+  padding-top: env(safe-area-inset-top, 0px);
+  height: calc(68px + env(safe-area-inset-top, 0px));
+}
+
+@media (max-width: 980px) {
+  .fx-launcher {
+    right: calc(14px + env(safe-area-inset-right, 0px));
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+  .fx-update { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .fx-top { height: calc(60px + env(safe-area-inset-top, 0px)); }
+}

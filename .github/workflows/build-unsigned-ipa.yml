@@ -173,3 +173,32 @@ jobs:
           path: flowzz-plus-unsigned.ipa
           if-no-files-found: error
           retention-days: 14
+
+  publish-release:
+    name: Attach the IPA to the tag's release
+    needs: build-ipa
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download the built IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: flowzz-plus-unsigned-ipa-${{ github.run_number }}
+          path: dist
+
+      - name: Upload it as a release asset
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          ls -l dist
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "$TAG" \
+              --notes "Unsigned IPA built from ${GITHUB_SHA}. Sign it with your own app and extension profiles before installing."
+          gh release upload "$TAG" dist/flowzz-plus-unsigned.ipa \
+            --repo "$GITHUB_REPOSITORY" --clobber

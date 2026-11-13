@@ -4,8 +4,7 @@
   "version": "1.5.1",
   "description": "Erweiterte Suche für flowzz.com: Herkunft, Effekte, Terpene, Favoriten, Vergleich und CSV-Export.",
   "permissions": [
-    "storage",
-    "activeTab"
+    "storage"
   ],
   "host_permissions": [
     "https://flowzz.com/*",

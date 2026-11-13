@@ -470,7 +470,8 @@ if host_id and ext_id:
 
     host_target = float(host_debug.get("IPHONEOS_DEPLOYMENT_TARGET", "0") or 0)
     ext_target = float(ext_debug.get("IPHONEOS_DEPLOYMENT_TARGET", "0") or 0)
-    check(host_target >= 15.4, "host deployment target must be iOS 15.4 or later (Manifest V3)")
+    check(host_target >= 16.4, "host deployment target must be iOS 16.4 or later (service workers, DecompressionStream)")
+    check(ext_target >= 16.4, "extension deployment target must be iOS 16.4 or later")
     check(
         ext_target <= host_target,
         "extension deployment target must not be newer than the host app's",
@@ -510,6 +511,27 @@ if check(os.path.exists(manifest_path), "extension has no Resources/manifest.jso
             os.path.exists(os.path.join(resources_dir, path)),
             f"manifest.json references a missing file: {path}",
         )
+
+    # The version lives in three places; they must agree before a release.
+    content_js_path = os.path.join(resources_dir, "content.js")
+    if os.path.exists(content_js_path):
+        with open(content_js_path, encoding="utf-8") as handle:
+            content_js = handle.read()
+        version_match = re.search(r"const VERSION = '([^']+)'", content_js)
+        if check(version_match is not None, "content.js has no `const VERSION = '…'` line"):
+            check(
+                version_match.group(1) == str(manifest.get("version", "")),
+                "content.js VERSION and manifest.json version differ",
+            )
+            try:
+                marketing = resolved_build_setting(host_debug, "MARKETING_VERSION")
+            except Exception:
+                marketing = None
+            if marketing:
+                check(
+                    marketing == str(manifest.get("version", "")),
+                    "MARKETING_VERSION and manifest.json version differ",
+                )
 else:
     manifest = {}
 
@@ -543,7 +565,7 @@ for directory, _, files in os.walk(ROOT):
 # Report
 # --------------------------------------------------------------------------- #
 
-print(f"flowzz-plus-ios-safari — static validation ({checks} checks)")
+print(f"flowzz-plus-ios-app — static validation ({checks} checks)")
 print(f"project: {os.path.relpath(PROJECT, ROOT)}")
 print(f"targets: {host_name!r} (application) + {ext_name!r} (app extension)")
 print()

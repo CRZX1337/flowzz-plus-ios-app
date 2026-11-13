@@ -10,7 +10,7 @@ private enum FlowzzPalette {
 
 private enum FlowzzLinks {
     static let website = URL(string: "https://flowzz.com")!
-    static let builds = URL(string: "https://github.com/CRZX1337/flowzz-plus-ios-app/actions/workflows/build-unsigned-ipa.yml")!
+    static let builds = URL(string: "https://github.com/CRZX1337/flowzz-plus-ios-app/releases/latest")!
 }
 
 struct ContentView: View {
@@ -167,13 +167,13 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Text("Neue IPA-Builds findest du in GitHub Actions. Updates müssen mit deinem Signer signiert und erneut installiert werden. Für den privaten GitHub-Workflow kann eine Anmeldung erforderlich sein.")
+            Text("Neue Builds liegen als unsignierte IPA in den GitHub-Releases. Jedes Update musst du mit deinem Signer signieren und erneut installieren – Safari-Erweiterungen aktualisieren sich nicht selbst.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             Link(destination: FlowzzLinks.builds) {
-                Label("Builds auf GitHub ansehen", systemImage: "arrow.up.right")
+                Label("Neueste Version ansehen", systemImage: "arrow.up.right")
                     .font(.subheadline.weight(.semibold))
             }
         }
