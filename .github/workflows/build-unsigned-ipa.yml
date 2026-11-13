@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       app_bundle_id:
-        description: Bundle identifier for the iOS host app (must match the signing profile)
-        required: true
+        description: Optional host bundle ID; blank uses a non-installable placeholder
+        required: false
         type: string
       extension_bundle_id:
-        description: Bundle identifier for the Safari extension (must be prefixed by the host ID)
-        required: true
+        description: Optional Safari extension bundle ID; blank uses a non-installable placeholder
+        required: false
         type: string
   push:
     branches:
@@ -37,16 +37,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-            app_id="$APP_BUNDLE_ID_INPUT"
-            extension_id="$EXTENSION_BUNDLE_ID_INPUT"
-          else
-            app_id="$APP_BUNDLE_ID_VARIABLE"
-            extension_id="$EXTENSION_BUNDLE_ID_VARIABLE"
-          fi
+          app_id="$APP_BUNDLE_ID_INPUT"
+          extension_id="$EXTENSION_BUNDLE_ID_INPUT"
+          if [[ -z "$app_id" ]]; then app_id="$APP_BUNDLE_ID_VARIABLE"; fi
+          if [[ -z "$extension_id" ]]; then extension_id="$EXTENSION_BUNDLE_ID_VARIABLE"; fi
 
-          if [[ -z "$app_id" || -z "$extension_id" ]]; then
-            echo "Set FLOWZZ_APP_BUNDLE_ID and FLOWZZ_EXTENSION_BUNDLE_ID in repository Variables, or run workflow_dispatch with both values."
+          if [[ -z "$app_id" && -z "$extension_id" ]]; then
+            app_id="com.example.flowzzplus"
+            extension_id="com.example.flowzzplus.Extension"
+            echo "::warning::No bundle IDs supplied; using non-installable placeholder IDs."
+          elif [[ -z "$app_id" || -z "$extension_id" ]]; then
+            echo "Supply both bundle IDs, or leave both blank to use placeholders."
             exit 1
           fi
 
