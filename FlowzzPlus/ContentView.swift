@@ -1,153 +1,253 @@
 import SwiftUI
+import UIKit
 
 private enum FlowzzPalette {
-    static let ink = Color(red: 0.07, green: 0.08, blue: 0.14)
-    static let teal = Color(red: 0.20, green: 0.66, blue: 0.61)
-    static let darkTeal = Color(red: 0.11, green: 0.52, blue: 0.47)
-    static let muted = Color(red: 0.48, green: 0.52, blue: 0.59)
-    static let canvas = Color(red: 0.97, green: 0.985, blue: 0.99)
-    static let paleTeal = Color(red: 0.88, green: 0.96, blue: 0.95)
+    static let teal = Color(red: 0.11, green: 0.56, blue: 0.51)
+    static let deepTeal = Color(red: 0.08, green: 0.42, blue: 0.38)
+    static let canvas = Color(uiColor: .systemGroupedBackground)
+    static let card = Color(uiColor: .secondarySystemGroupedBackground)
+}
+
+private enum FlowzzLinks {
+    static let website = URL(string: "https://flowzz.com")!
+    static let builds = URL(string: "https://github.com/CRZX1337/flowzz-plus-ios-app/actions/workflows/build-unsigned-ipa.yml")!
 }
 
 struct ContentView: View {
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                background
-
-                ScrollView {
-                    VStack(spacing: 0) {
-                        brand
-
-                        Text("Aktiviere flowzz+ in den Safari-Einstellungen.")
-                            .font(.system(size: 17, weight: .regular))
-                            .foregroundStyle(FlowzzPalette.ink)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding(.top, 28)
-                            .padding(.bottom, 22)
-
-                        setupSteps
-
-                        HStack(alignment: .center, spacing: 9) {
-                            Image(systemName: "info.circle.fill")
-                                .font(.system(size: 17, weight: .medium))
-                                .foregroundStyle(FlowzzPalette.muted)
-
-                            Text("Die Erweiterung läuft auf flowzz.com in Safari.")
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundStyle(FlowzzPalette.muted)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 26)
-                        .padding(.horizontal, 5)
-                    }
-                    .padding(.horizontal, 22)
-                    .padding(.top, 42)
-                    .padding(.bottom, 40)
-                    .frame(maxWidth: 500)
-                    .frame(maxWidth: .infinity, minHeight: geometry.size.height, alignment: .top)
-                }
-                .scrollIndicators(.hidden)
-            }
-        }
-        .background(FlowzzPalette.canvas.ignoresSafeArea())
-        .preferredColorScheme(.light)
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unbekannt"
     }
 
-    private var background: some View {
-        FlowzzPalette.canvas
-            .overlay(alignment: .topLeading) {
-                Circle()
-                    .fill(FlowzzPalette.paleTeal.opacity(0.62))
-                    .frame(width: 310, height: 310)
-                    .offset(x: -185, y: -205)
+    private var buildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—"
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    brand
+                    websiteButton
+                    setupCard
+                    helpCard
+                    privacyCard
+                    updatesCard
+                    footer
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                .padding(.bottom, 32)
+                .frame(maxWidth: 560)
+                .frame(maxWidth: .infinity)
             }
-            .overlay(alignment: .bottomTrailing) {
-                Circle()
-                    .fill(FlowzzPalette.paleTeal.opacity(0.48))
-                    .frame(width: 270, height: 270)
-                    .offset(x: 150, y: 170)
-            }
-            .ignoresSafeArea()
+            .background(FlowzzPalette.canvas.ignoresSafeArea())
+            .navigationTitle("flowzz+")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .tint(FlowzzPalette.deepTeal)
     }
 
     private var brand: some View {
-        VStack(spacing: 10) {
+        HStack(spacing: 15) {
             Image(systemName: "plus")
-                .font(.system(size: 54, weight: .bold, design: .rounded))
+                .font(.system(size: 34, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
-                .frame(width: 88, height: 88)
-                .background(FlowzzPalette.teal, in: RoundedRectangle(cornerRadius: 25, style: .continuous))
-                .shadow(color: FlowzzPalette.darkTeal.opacity(0.18), radius: 13, x: 0, y: 8)
+                .frame(width: 64, height: 64)
+                .background(FlowzzPalette.teal, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
 
-            HStack(spacing: 0) {
-                Text("flowzz")
-                    .foregroundStyle(FlowzzPalette.ink)
-                Text("+")
-                    .foregroundStyle(FlowzzPalette.teal)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 0) {
+                    Text("flowzz").foregroundStyle(.primary)
+                    Text("+").foregroundStyle(FlowzzPalette.teal)
+                }
+                .font(.system(size: 30, weight: .bold))
+                .tracking(-1)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("flowzz plus")
+
+                Text("Safari-Erweiterung")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
-            .font(.system(size: 39, weight: .bold))
-            .tracking(-1.4)
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("flowzz plus")
 
-            Text("Safari-Erweiterung")
-                .font(.system(size: 19, weight: .regular))
-                .foregroundStyle(FlowzzPalette.muted)
-                .padding(.top, -5)
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
     }
 
-    private var setupSteps: some View {
-        VStack(spacing: 0) {
-            SetupStep(number: 1, title: Text("Öffne die Einstellungen"))
-            stepDivider
-            SetupStep(number: 2, title: Text("Tippe auf ") + Text("Apps und Safari").fontWeight(.semibold))
-            stepDivider
-            SetupStep(
-                number: 3,
-                title: Text("Öffne ") + Text("Erweiterungen").fontWeight(.semibold) +
-                    Text(" und aktiviere ") + Text("flowzz+").fontWeight(.semibold)
+    private var websiteButton: some View {
+        VStack(spacing: 8) {
+            Link(destination: FlowzzLinks.website) {
+                Label("flowzz.com besuchen", systemImage: "safari")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 5)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(FlowzzPalette.teal)
+
+            Text("Für die Erweiterung flowzz.com in Safari öffnen.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var setupCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionHeading(
+                "Einrichtung",
+                subtitle: "Aktiviere flowzz+ einmalig in Safari.",
+                symbol: "checkmark.shield"
+            )
+
+            VStack(spacing: 0) {
+                SetupStep(number: 1, title: "Öffne Einstellungen → Apps → Safari → Erweiterungen.")
+                Divider().padding(.leading, 42)
+                SetupStep(number: 2, title: "Tippe auf flowzz+ und schalte die Erweiterung ein.")
+                Divider().padding(.leading, 42)
+                SetupStep(number: 3, title: "Erlaube den Website-Zugriff für flowzz.com.")
+                Divider().padding(.leading, 42)
+                SetupStep(number: 4, title: "Öffne flowzz.com in Safari und lade die Seite neu.")
+            }
+            .padding(.top, 4)
+        }
+        .padding(18)
+        .background(FlowzzPalette.card, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var helpCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeading("Hilfe", subtitle: "Häufige Probleme schnell lösen.", symbol: "questionmark.circle")
+
+            helpItem(
+                "flowzz+ wird in Safari nicht angezeigt",
+                symbol: "puzzlepiece",
+                detail: "Prüfe unter Einstellungen → Apps → Safari → Erweiterungen, ob flowzz+ eingeschaltet ist. Kehre danach zu Safari zurück und lade flowzz.com neu."
+            )
+            Divider()
+            helpItem(
+                "Das flowzz+-Fenster öffnet sich nicht",
+                symbol: "rectangle.on.rectangle",
+                detail: "Öffne eine Seite unter https://flowzz.com. Prüfe den Website-Zugriff für flowzz+ und tippe bei Bedarf in Safaris Erweiterungsmenü auf flowzz+. Lade die Seite anschließend neu."
+            )
+            Divider()
+            helpItem(
+                "Produkte oder Zusatzdaten fehlen",
+                symbol: "arrow.clockwise",
+                detail: "Prüfe die Internetverbindung und lade flowzz.com erneut. Produktinformationen kommen von flowzz.com; der zusätzliche Attribut-Index wird öffentlich von GitHub geladen."
             )
         }
-        .padding(.horizontal, 18)
-        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 25, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 25, style: .continuous)
-                .stroke(.white.opacity(0.92), lineWidth: 1)
-        }
-        .shadow(color: FlowzzPalette.ink.opacity(0.035), radius: 18, x: 0, y: 8)
+        .padding(18)
+        .background(FlowzzPalette.card, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
-    private var stepDivider: some View {
-        Rectangle()
-            .fill(FlowzzPalette.muted.opacity(0.16))
-            .frame(height: 1)
-            .padding(.leading, 49)
+    private var privacyCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionHeading("Zugriff & Datenschutz", symbol: "hand.raised")
+
+            Text("flowzz+ arbeitet auf https://flowzz.com/. Favoriten, Darstellungseinstellung und Attribut-Cache werden lokal im Safari-Erweiterungsspeicher abgelegt. Für Produktdaten nutzt die Erweiterung flowzz.com; den zusätzlichen Attribut-Index lädt sie aus dem öffentlichen flowzz+-GitHub-Repository.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(18)
+        .background(FlowzzPalette.card, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var updatesCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeading("App & Updates", symbol: "arrow.down.circle")
+
+            HStack {
+                Label("Version \(appVersion)", systemImage: "info.circle")
+                    .font(.subheadline.weight(.medium))
+                Spacer()
+                Text("Build \(buildNumber)")
+                    .font(.footnote.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+
+            Text("Neue IPA-Builds findest du in GitHub Actions. Updates müssen mit deinem Signer signiert und erneut installiert werden. Für den privaten GitHub-Workflow kann eine Anmeldung erforderlich sein.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Link(destination: FlowzzLinks.builds) {
+                Label("Builds auf GitHub ansehen", systemImage: "arrow.up.right")
+                    .font(.subheadline.weight(.semibold))
+            }
+        }
+        .padding(18)
+        .background(FlowzzPalette.card, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var footer: some View {
+        Label("Safari verwaltet den Erweiterungszugriff. Diese App zeigt dir, wo du ihn ändern kannst.", systemImage: "info.circle")
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 4)
+    }
+
+    private func sectionHeading(_ title: String, subtitle: String? = nil, symbol: String) -> some View {
+        HStack(alignment: .top, spacing: 11) {
+            Image(systemName: symbol)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(FlowzzPalette.teal)
+                .frame(width: 24)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    private func helpItem(_ title: String, symbol: String, detail: String) -> some View {
+        DisclosureGroup {
+            Text(detail)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 8)
+        } label: {
+            Label(title, systemImage: symbol)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.primary)
+        }
+        .tint(FlowzzPalette.teal)
+        .padding(.vertical, 5)
     }
 }
 
 private struct SetupStep: View {
     let number: Int
-    let title: Text
+    let title: String
 
     var body: some View {
-        HStack(alignment: .center, spacing: 17) {
+        HStack(alignment: .top, spacing: 13) {
             Text(String(number))
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
-                .foregroundStyle(FlowzzPalette.darkTeal)
-                .frame(width: 36, height: 36)
-                .background(FlowzzPalette.paleTeal, in: Circle())
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .frame(width: 28, height: 28)
+                .background(FlowzzPalette.teal, in: Circle())
+                .accessibilityHidden(true)
 
-            title
-                .font(.system(size: 16, weight: .regular))
-                .foregroundStyle(FlowzzPalette.ink)
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 4)
         }
-        .padding(.vertical, 13)
+        .padding(.vertical, 11)
     }
 }
 
