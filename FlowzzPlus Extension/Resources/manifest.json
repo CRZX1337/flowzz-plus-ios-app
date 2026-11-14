@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "flowzz+",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Erweiterte Suche für flowzz.com: Herkunft, Effekte, Terpene, Favoriten, Vergleich und CSV-Export.",
   "permissions": [
     "storage"
